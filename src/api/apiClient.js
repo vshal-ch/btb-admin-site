@@ -1,0 +1,62 @@
+import axios from "axios";
+
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://beat-the-box.fun/api",
+  withCredentials: true,
+});
+
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+apiClient.interceptors.response.use(
+  (res) => {
+    if (res.data?.success) {
+      return res.data.data;
+    } else {
+      return Promise.reject(new Error(res.data?.error || "Unknown error"));
+    }
+  },
+  async (err) => {
+    const originalReq = err.config;
+
+    // if no response or no status, just reject
+    if (!err.response) return Promise.reject(err);
+
+    // ✅ Don't try refresh on login failure or auth routes
+    if (originalReq.url.includes("/auth/login")) {
+      return Promise.reject(err);
+    }
+
+    // ✅ Only refresh if 401 AND request not retried yet
+    if (
+      (err.response.status === 401 || err.response.status === 403) &&
+      !originalReq._retry
+    ) {
+      originalReq._retry = true;
+      try {
+        const res = await axios.post(
+          "http://192.168.29.6:4000/api/auth/refresh",
+          {},
+          { withCredentials: true }
+        );
+        if (res.data?.success) {
+          const newToken = res.data.data.accessToken;
+          localStorage.setItem("accessToken", newToken);
+          originalReq.headers.Authorization = `Bearer ${newToken}`;
+          return apiClient(originalReq);
+        }
+        // eslint-disable-next-line no-unused-vars
+      } catch (e) {
+        localStorage.removeItem("accessToken");
+        window.location.href = "/login";
+      }
+    }
+
+    return Promise.reject(err.response.data.error);
+  }
+);
+
+export default apiClient;
