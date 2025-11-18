@@ -1,7 +1,8 @@
 import axios from "axios";
+import { API_BASE_URL } from "./apiConfig";
 
 const apiClient = axios.create({
-  baseURL: "https://beat-the-box.fun/api",
+  baseURL: API_BASE_URL,
   withCredentials: true,
 });
 
@@ -38,7 +39,7 @@ apiClient.interceptors.response.use(
       originalReq._retry = true;
       try {
         const res = await axios.post(
-          "https://beat-the-box.fun/api/auth/refresh",
+          `${API_BASE_URL}/auth/refresh`,
           {},
           { withCredentials: true }
         );

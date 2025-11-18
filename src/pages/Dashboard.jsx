@@ -1,14 +1,17 @@
 import { logout } from "../api/auth";
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import "./Dashboard.css";
 import DashboardSlots from "../components/DashboardSlots";
 import VenueDetails from "../components/VenueDetails";
 import ContactDetails from "../components/ContactDetails";
 import MediaDetails from "../components/MediaDetails";
+import { AvailableSportsContext } from "../util/availableSportsContext";
+import { getSports } from "../api/sportService";
 
 export default function Dashboard() {
   const [active, setActive] = useState("Dashboard");
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const { updateAvailableSports } = useContext(AvailableSportsContext);
 
   const menuItems = [
     "Dashboard",
@@ -25,6 +28,21 @@ export default function Dashboard() {
     localStorage.removeItem("accessToken");
     window.location.href = "/login";
   };
+
+  const fetchSports = async () => {
+    try {
+      const sports = await getSports();
+      console.log(sports);
+      
+      updateAvailableSports(sports);
+    } catch (err) {
+      alert(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSports();
+  }, []);
 
   return (
     <div className="layout">

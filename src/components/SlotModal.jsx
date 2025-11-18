@@ -8,7 +8,7 @@ function getDefaultHour() {
   return hour;
 }
 
-const SlotModal = ({ slot, onClose, onSave }) => {
+const SlotModal = ({ slot, onClose, onSave, availableSports }) => {
   const [date, setDate] = useState(
     slot?.date || new Date().toISOString().split("T")[0]
   );
@@ -25,6 +25,9 @@ const SlotModal = ({ slot, onClose, onSave }) => {
   const [blocked, setBlocked] = useState(slot?.blocked || true);
   const [note, setNote] = useState(slot?.note || "");
   const [error, setError] = useState("");
+  const [selectedSportId, setSelectedSportId] = useState(
+    slot?.sportId || availableSports[0].id
+  );
 
   const sanitizeNote = (text) => {
     return text.replace(/[<>/'"\\;]/g, ""); // basic XSS/SQLi sanitization
@@ -56,6 +59,7 @@ const SlotModal = ({ slot, onClose, onSave }) => {
       note: sanitizeNote(note.trim()),
       blocked,
       date,
+      sport_id: selectedSportId,
     };
 
     onSave(payload);
@@ -148,9 +152,28 @@ const SlotModal = ({ slot, onClose, onSave }) => {
           <label>Blocked</label>
         </div>
 
+        <div className="mb-4">
+          <label className="block font-medium mb-1 text-left">
+            Select Sport
+          </label>
+          <select
+            value={selectedSportId}
+            onChange={(e) => setSelectedSportId(e.target.value)}
+            className="bg-gray-800 border rounded-md p-2 w-full"
+          >
+            {availableSports.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Note */}
         <div className="mb-4">
-          <label className="block font-medium mb-1">Note (optional)</label>
+          <label className="block font-medium mb-1 text-left">
+            Note (optional)
+          </label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}

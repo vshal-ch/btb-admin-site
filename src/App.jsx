@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AvailableSportsContextProvider } from "./util/AvailableSportsContextProvider";
 
 function App() {
   const accessToken = localStorage.getItem("accessToken");
@@ -15,7 +16,9 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <AvailableSportsContextProvider>
+                <Dashboard />
+              </AvailableSportsContextProvider>
             </ProtectedRoute>
           }
         />

@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Edit, Trash2, Plus, Save, X } from "lucide-react";
 import {
   deleteCost,
-  editCost,
+  updateCost,
   getVenue,
   saveCost,
   saveVenue,
 } from "../api/venueService";
+import { AvailableSportsContext } from "../util/availableSportsContext";
+import AvailableSports from "./AvailableSports";
 
 export default function VenueDetails() {
   const [venue, setVenue] = useState({
@@ -22,8 +24,22 @@ export default function VenueDetails() {
   const [costsArray, setCostsArray] = useState([]);
   const [loading, setLoading] = useState(false);
   const [addingRow, setAddingRow] = useState(false);
-  const [newCost, setNewCost] = useState({ timings: "", cost: "" });
   const [editingRow, setEditingRow] = useState(null);
+  const { availableSports } = useContext(AvailableSportsContext);
+  const [newCost, setNewCost] = useState({
+    sport_id: availableSports[0]?.id,
+    cost: "",
+    evening_cost: 0,
+    weekend_cost: 0,
+  });
+  const [editCost, setEditCost] = useState({
+    id: "",
+    sport_id: "",
+    cost: "",
+    evening_cost: 0,
+    weekend_cost: 0,
+    sport: "",
+  });
 
   // ✅ Fetch venue details on mount
   useEffect(() => {
@@ -61,15 +77,20 @@ export default function VenueDetails() {
   }, [venue, originalVenue]);
 
   const handleAddCost = async () => {
-    if (!newCost.timings || !newCost.cost) {
-      alert("Please fill in both timings and cost");
+    if (!newCost.sport_id || !newCost.cost) {
+      alert("Please fill in both Sport and cost");
       return;
     }
     setLoading(true);
     try {
       let res = await saveCost(newCost);
       setCostsArray((prev) => [...prev, { ...res }]);
-      setNewCost({ timings: "", cost: "" });
+      setNewCost({
+        sport_id: "",
+        cost: "",
+        evening_cost: 0,
+        weekend_cost: 0,
+      });
       setAddingRow(false);
     } catch (err) {
       alert(err);
@@ -93,18 +114,37 @@ export default function VenueDetails() {
 
   const handleEditCost = (idx) => {
     setEditingRow(idx);
+    setEditCost(costsArray[idx]);
   };
 
-  const handleSaveEdit = async (idx) => {
-    const cost = costsArray[idx];
-    if (!cost.timings || !cost.cost) {
-      alert("Please fill in both timings and cost");
+  const handleSaveEdit = async () => {
+    if (!editCost.sport || !editCost.cost) {
+      alert("Please fill in both Sport and cost");
       return;
     }
+
+    const sport_id = availableSports.find((s) => s.name === editCost.sport)?.id;
+    if (!sport_id) {
+      alert("Invalid sport!");
+      return;
+    }
+    editCost.sport_id = sport_id;
     setLoading(true);
     try {
-      await editCost(cost);
+      await updateCost(editCost);
+      setCostsArray((prev) => {
+        prev[editingRow] = editCost;
+        return costsArray;
+      });
       setEditingRow(null);
+      setEditCost({
+        id: "",
+        sport_id: "",
+        cost: "",
+        evening_cost: 0,
+        weekend_cost: 0,
+        sport: "",
+      });
     } catch (err) {
       alert(err);
     }
@@ -223,8 +263,10 @@ export default function VenueDetails() {
           <table className="w-full border border-gray-700 rounded-md">
             <thead className="bg-gray-800 text-gray-200">
               <tr>
-                <th className="p-2 text-left">Timings</th>
+                <th className="p-2 text-left">Sport</th>
                 <th className="p-2 text-end">Cost</th>
+                <th className="p-2 text-end">Evening Cost</th>
+                <th className="p-2 text-end">Weekend Cost</th>
                 <th className="p-2 text-center">Actions</th>
               </tr>
             </thead>
@@ -233,38 +275,69 @@ export default function VenueDetails() {
                 <tr key={idx} className="border-t border-gray-700">
                   <td className="p-2 text-start">
                     {editingRow === idx ? (
-                      <input
-                        type="text"
-                        value={c.timings}
+                      <select
+                        value={editCost.sport}
                         onChange={(e) =>
-                          setCostsArray((cArray) => {
-                            const updated = [...cArray];
-                            updated[idx].timings = e.target.value;
-                            return updated;
-                          })
+                          setEditCost({ ...editCost, sport: e.target.value })
                         }
-                        className="input p-1"
-                      />
+                        className="bg-gray-800 border rounded-md p-2 w-full"
+                      >
+                        {availableSports.map((m) => (
+                          <option key={m.id} value={m.name}>
+                            {m.name}
+                          </option>
+                        ))}
+                      </select>
                     ) : (
-                      c.timings
+                      c.sport
                     )}
                   </td>
                   <td className="p-2 text-end">
                     {editingRow === idx ? (
                       <input
                         type="number"
-                        value={c.cost}
+                        value={editCost.cost}
                         onChange={(e) =>
-                          setCostsArray((cArray) => {
-                            const updated = [...cArray];
-                            updated[idx].cost = e.target.value;
-                            return updated;
-                          })
+                          setEditCost({ ...editCost, cost: e.target.value })
                         }
-                        className="input p-1"
+                        className="input p-1 text-right"
                       />
                     ) : (
                       c.cost
+                    )}
+                  </td>
+                  <td className="p-2 text-end">
+                    {editingRow === idx ? (
+                      <input
+                        type="number"
+                        value={editCost.evening_cost}
+                        onChange={(e) =>
+                          setEditCost({
+                            ...editCost,
+                            evening_cost: e.target.value,
+                          })
+                        }
+                        className="input p-1 text-right"
+                      />
+                    ) : (
+                      c.evening_cost
+                    )}
+                  </td>
+                  <td className="p-2 text-end">
+                    {editingRow === idx ? (
+                      <input
+                        type="number"
+                        value={editCost.weekend_cost}
+                        onChange={(e) =>
+                          setEditCost({
+                            ...editCost,
+                            weekend_cost: e.target.value,
+                          })
+                        }
+                        className="input p-1 text-right"
+                      />
+                    ) : (
+                      c.weekend_cost
                     )}
                   </td>
                   <td className="p-2 flex justify-center gap-2">
@@ -277,7 +350,10 @@ export default function VenueDetails() {
                           <Save size={18} />
                         </button>
                         <button
-                          onClick={() => setEditingRow(null)}
+                          onClick={() => {
+                            setEditingRow(null);
+                            setEditCost({});
+                          }}
                           className="text-gray-400 cursor-pointer"
                         >
                           <X size={18} />
@@ -306,15 +382,19 @@ export default function VenueDetails() {
               {addingRow && (
                 <tr className="border-t border-gray-700 bg-gray-900">
                   <td className="p-2">
-                    <input
-                      type="text"
-                      value={newCost.timings}
+                    <select
+                      value={newCost.sport_id}
                       onChange={(e) =>
-                        setNewCost((v) => ({ ...v, timings: e.target.value }))
+                        setNewCost((v) => ({ ...v, sport_id: e.target.value }))
                       }
-                      className="input p-1"
-                      placeholder="Timings"
-                    />
+                      className="bg-gray-800 border rounded-md p-2 w-full"
+                    >
+                      {availableSports.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td className="p-2">
                     <input
@@ -322,6 +402,34 @@ export default function VenueDetails() {
                       value={newCost.cost}
                       onChange={(e) =>
                         setNewCost((v) => ({ ...v, cost: e.target.value }))
+                      }
+                      className="input p-1"
+                      placeholder="Cost"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <input
+                      type="number"
+                      value={newCost.evening_cost}
+                      onChange={(e) =>
+                        setNewCost((v) => ({
+                          ...v,
+                          evening_cost: e.target.value,
+                        }))
+                      }
+                      className="input p-1"
+                      placeholder="Cost"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <input
+                      type="number"
+                      value={newCost.weekend_cost}
+                      onChange={(e) =>
+                        setNewCost((v) => ({
+                          ...v,
+                          weekend_cost: e.target.value,
+                        }))
                       }
                       className="input p-1"
                       placeholder="Cost"
@@ -356,6 +464,8 @@ export default function VenueDetails() {
           </button>
         )}
       </div>
+
+      <AvailableSports />
     </div>
   );
 }

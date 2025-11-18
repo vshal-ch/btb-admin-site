@@ -1,9 +1,10 @@
 // DashboardSlots.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Plus, Edit, Trash2, RefreshCw } from "lucide-react";
 import { getSlots, deleteSlot, saveSlot } from "../api/slotService";
 import SlotModal from "./SlotModal";
 import { minutesToTime } from "../util/utils";
+import { AvailableSportsContext } from "../util/availableSportsContext";
 
 const DashboardSlots = () => {
   const [slots, setSlots] = useState([]);
@@ -16,6 +17,7 @@ const DashboardSlots = () => {
     current_time: 360,
     date: new Date().toISOString().split("T")[0],
   });
+  const { availableSports } = useContext(AvailableSportsContext);
 
   const fetchSlots = async (noCache = false) => {
     setLoading(true);
@@ -140,9 +142,10 @@ const DashboardSlots = () => {
                 "End",
                 "Blocked",
                 "Note",
+                "Sport",
                 "Actions",
               ].map((h) => (
-                <th key={h} className="p-2 text-left">
+                <th key={h} className="p-2">
                   {h}
                 </th>
               ))}
@@ -164,9 +167,13 @@ const DashboardSlots = () => {
                   <td className="p-2">{minutesToTime(s.end_time)}</td>
                   <td className="p-2">{s.blocked ? "Yes" : "No"}</td>
                   <td className="p-2">{s.note || "-"}</td>
+                  <td className="p-2">{s.sport || "-"}</td>
                   <td className="p-2 flex gap-2">
                     <button
                       onClick={() => {
+                        s.sportId = availableSports.find(
+                          (sport) => sport.name == s.sport
+                        )?.id;
                         setEditSlot(s);
                         setShowModal(true);
                       }}
@@ -193,6 +200,7 @@ const DashboardSlots = () => {
             setEditSlot(null);
           }}
           onSave={handleSave}
+          availableSports={availableSports}
         />
       )}
     </div>

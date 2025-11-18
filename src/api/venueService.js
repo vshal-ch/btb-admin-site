@@ -6,10 +6,12 @@ export const saveVenue = (formData) => apiClient.put(`/admin/venue`, formData);
 
 export const saveCost = (cost) => apiClient.post(`/admin/costs`, cost);
 
-export const editCost = (cost) =>
+export const updateCost = (cost) =>
   apiClient.put(`/admin/costs/${cost.id}`, {
-    timings: cost.timings,
+    sport_id: cost.sport_id,
     cost: cost.cost,
+    evening_cost: cost.evening_cost,
+    weekend_cost: cost.weekend_cost,
   });
 
-export const deleteCost = (cost) => apiClient.delete(`/admin/costs/${cost.id}`)
+export const deleteCost = (cost) => apiClient.delete(`/admin/costs/${cost.id}`);
