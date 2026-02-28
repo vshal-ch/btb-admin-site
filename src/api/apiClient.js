@@ -8,7 +8,12 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  if (token) {
+    config.headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  config.headers.set("x-platform", "1"); // must be string
   return config;
 });
 
@@ -41,7 +46,7 @@ apiClient.interceptors.response.use(
         const res = await axios.post(
           `${API_BASE_URL}/auth/refresh`,
           {},
-          { withCredentials: true }
+          { headers: { "x-platform": 1 }, withCredentials: true },
         );
         if (res.data?.success) {
           const newToken = res.data.data.accessToken;
@@ -57,7 +62,7 @@ apiClient.interceptors.response.use(
     }
 
     return Promise.reject(err.response.data.error);
-  }
+  },
 );
 
 export default apiClient;

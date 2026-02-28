@@ -1,14 +1,10 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Edit, Trash2, Plus, Save, X } from "lucide-react";
-import {
-  deleteCost,
-  updateCost,
-  getVenue,
-  saveCost,
-  saveVenue,
-} from "../api/venueService";
+import { getVenue, saveVenue } from "../api/venueService";
 import { AvailableSportsContext } from "../util/availableSportsContext";
 import AvailableSports from "./AvailableSports";
+import Amenities from "./misc/Amenities";
+import { getAmenities } from "../api/amenityService";
 
 export default function VenueDetails() {
   const [venue, setVenue] = useState({
@@ -17,29 +13,13 @@ export default function VenueDetails() {
     timings: "",
     address: "",
     gmaps_url: "",
-    dimensions: "",
+    about: "",
   });
   const [originalVenue, setOriginalVenue] = useState(null);
   const [isModified, setIsModified] = useState(false);
-  const [costsArray, setCostsArray] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [addingRow, setAddingRow] = useState(false);
-  const [editingRow, setEditingRow] = useState(null);
-  const { availableSports } = useContext(AvailableSportsContext);
-  const [newCost, setNewCost] = useState({
-    sport_id: availableSports[0]?.id,
-    cost: "",
-    evening_cost: 0,
-    weekend_cost: 0,
-  });
-  const [editCost, setEditCost] = useState({
-    id: "",
-    sport_id: "",
-    cost: "",
-    evening_cost: 0,
-    weekend_cost: 0,
-    sport: "",
-  });
+  const [showAmenities, setShowAmenities] = useState(false);
+  const [amenities, setAmenities] = useState([]);
 
   // ✅ Fetch venue details on mount
   useEffect(() => {
@@ -56,12 +36,12 @@ export default function VenueDetails() {
         timings: venueData.timings || "",
         address: venueData.address || "",
         gmaps_url: venueData.gmaps_url || "",
-        dimensions: venueData.dimensions || "",
+        about: venueData.about || "",
       };
 
       setVenue(formattedVenue);
       setOriginalVenue(formattedVenue);
-      setCostsArray(venueData.costs || []);
+      // setCostsArray(venueData.costs || []);
     } catch (err) {
       alert(err);
     }
@@ -71,88 +51,13 @@ export default function VenueDetails() {
   useEffect(() => {
     if (!originalVenue) return;
     const modified = Object.keys(originalVenue).some(
-      (key) => venue[key] !== originalVenue[key]
+      (key) => venue[key] !== originalVenue[key],
     );
     setIsModified(modified);
   }, [venue, originalVenue]);
 
-  const handleAddCost = async () => {
-    if (!newCost.sport_id || !newCost.cost) {
-      alert("Please fill in both Sport and cost");
-      return;
-    }
-    setLoading(true);
-    try {
-      let res = await saveCost(newCost);
-      setCostsArray((prev) => [...prev, { ...res }]);
-      setNewCost({
-        sport_id: "",
-        cost: "",
-        evening_cost: 0,
-        weekend_cost: 0,
-      });
-      setAddingRow(false);
-    } catch (err) {
-      alert(err);
-    }
-    setLoading(false);
-  };
-
-  const handleDeleteCost = async (idx) => {
-    if (!window.confirm("Delete this cost detail?")) {
-      return;
-    }
-    setLoading(true);
-    try {
-      await deleteCost(costsArray[idx]);
-      setCostsArray((prev) => prev.filter((_, i) => i !== idx));
-    } catch (err) {
-      alert(err);
-    }
-    setLoading(false);
-  };
-
-  const handleEditCost = (idx) => {
-    setEditingRow(idx);
-    setEditCost(costsArray[idx]);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editCost.sport || !editCost.cost) {
-      alert("Please fill in both Sport and cost");
-      return;
-    }
-
-    const sport_id = availableSports.find((s) => s.name === editCost.sport)?.id;
-    if (!sport_id) {
-      alert("Invalid sport!");
-      return;
-    }
-    editCost.sport_id = sport_id;
-    setLoading(true);
-    try {
-      await updateCost(editCost);
-      setCostsArray((prev) => {
-        prev[editingRow] = editCost;
-        return costsArray;
-      });
-      setEditingRow(null);
-      setEditCost({
-        id: "",
-        sport_id: "",
-        cost: "",
-        evening_cost: 0,
-        weekend_cost: 0,
-        sport: "",
-      });
-    } catch (err) {
-      alert(err);
-    }
-    setLoading(false);
-  };
 
   const handleSaveVenue = async () => {
-    // TODO: add save API call logic here
     setLoading(true);
     try {
       await saveVenue({
@@ -165,6 +70,22 @@ export default function VenueDetails() {
       alert(err);
     }
     setLoading(false);
+  };
+
+  const toggleShowAmenities = async () => {
+    if (showAmenities === false) {
+      if (amenities.length == 0) {
+        try {
+          const resp = await getAmenities();
+          setAmenities(resp);
+        } catch (e) {
+          alert(e);
+        }
+      }
+      setShowAmenities(true);
+    } else {
+      setShowAmenities(false);
+    }
   };
 
   return (
@@ -244,19 +165,18 @@ export default function VenueDetails() {
           />
         </Field>
 
-        <Field label="Dimensions">
-          <input
+        <Field label="About Venue">
+          <textarea
             type="text"
-            value={venue.dimensions}
-            onChange={(e) =>
-              setVenue((v) => ({ ...v, dimensions: e.target.value }))
-            }
-            className="input"
+            value={venue.about}
+            onChange={(e) => setVenue((v) => ({ ...v, about: e.target.value }))}
+            className="input text-sm"
+            rows={10}
           />
         </Field>
       </div>
 
-      {/* Cost Details Table */}
+      {/* Cost Details Table
       <div className="mt-8">
         <h3 className="text-start text-lg font-semibold mb-3">Cost Details</h3>
         <div className="overflow-x-auto">
@@ -465,7 +385,19 @@ export default function VenueDetails() {
         )}
       </div>
 
-      <AvailableSports />
+      <AvailableSports /> */}
+
+      <div className="my-6 p-6 border border-gray-800 rounded-xl bg-gray-900">
+        <button
+          onClick={toggleShowAmenities}
+          className="w-full flex justify-between items-center font-medium"
+        >
+          <h3 className="text-lg font-semibold">Amenities</h3>
+          <span>{showAmenities ? "▴" : "▾"}</span>
+        </button>
+
+        {showAmenities && <Amenities amenitiesData={amenities} />}
+      </div>
     </div>
   );
 }

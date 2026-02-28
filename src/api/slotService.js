@@ -7,12 +7,22 @@ export const getSlots = async (filters = {}, noCache) => {
     headers["Pragma"] = "no-cache";
     headers["Expires"] = "0";
   }
-  return apiClient.get("/admin/slots/all", { params: filters, headers });
+  return apiClient.get("/slots", { params: filters, headers });
 };
 
-export const deleteSlot = (id) => apiClient.delete(`/admin/slots/${id}`);
+export const deleteSlot = (id) => apiClient.delete(`/slots/${id}`);
 
 export const saveSlot = (formData, editSlot) =>
   editSlot
-    ? apiClient.put(`/admin/slots/${editSlot.id}`, formData)
-    : apiClient.post("/admin/slots", formData);
+    ? apiClient.put(`/slots/${editSlot.id}`, formData)
+    : apiClient.post("/slots", formData);
+
+export const verifyGamePass = async (code) => {
+  return apiClient.post(`/slots/verify`, { game_pass_code: code });
+};
+
+export const getSlotDetails = async (id) => {
+  return apiClient.get(`/slots/id/${id}`);
+};
+
+export const markSlotAttended = (id) => apiClient.post(`/slots/${id}/attend`);
