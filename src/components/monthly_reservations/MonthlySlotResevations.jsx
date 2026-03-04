@@ -58,7 +58,6 @@ const MonthlyReservations = () => {
         status: statusFilter,
         search,
       });
-      console.log(res);
 
       setReservations(res || []);
     } catch (err) {

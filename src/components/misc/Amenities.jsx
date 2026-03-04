@@ -8,7 +8,6 @@ import {
 } from "../../api/amenityService";
 
 function Amenities({ amenitiesData }) {
-  console.log(amenitiesData);
 
   const [amenities, setAmenities] = useState(amenitiesData);
   // Local states

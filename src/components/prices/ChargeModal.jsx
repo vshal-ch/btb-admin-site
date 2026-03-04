@@ -86,8 +86,6 @@ const ChargeModal = ({ charge, onClose, onSaved }) => {
   const handleSave = async () => {
     const error = validateForm();
     if (error) {
-      console.log("small " + error);
-
       setError(error);
       return;
     }
@@ -100,8 +98,6 @@ const ChargeModal = ({ charge, onClose, onSaved }) => {
       }
       onSaved();
     } catch (err) {
-      console.log(err);
-
       setError(err);
     }
   };
