@@ -9,9 +9,12 @@ const API = axios.create({
 // request interceptor to attach access token
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
+
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.set("Authorization", `Bearer ${token}`);
   }
+
+  config.headers.set("x-platform", "1"); // must be string
   return config;
 });
 
@@ -38,13 +41,13 @@ API.interceptors.response.use(
     }
 
     // ✅ Only refresh if 401 AND request not retried yet
-    if (err.response.status === 401 && !originalReq._retry) {
+    if (err.response.status === 403 && !originalReq._retry) {
       originalReq._retry = true;
       try {
         const res = await axios.post(
           `${API_BASE_URL}/auth/refresh`,
           {},
-          { withCredentials: true }
+          { headers: { "x-platform": 1 }, withCredentials: true },
         );
         if (res.data?.success) {
           const newToken = res.data.data.accessToken;
@@ -60,7 +63,7 @@ API.interceptors.response.use(
     }
 
     return Promise.reject(err);
-  }
+  },
 );
 
 export const login = (username, password) =>

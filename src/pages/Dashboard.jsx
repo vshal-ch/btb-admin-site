@@ -7,6 +7,8 @@ import ContactDetails from "../components/ContactDetails";
 import MediaDetails from "../components/MediaDetails";
 import { AvailableSportsContext } from "../util/availableSportsContext";
 import { getSports } from "../api/sportService";
+import MonthlyReservations from "../components/monthly_reservations/MonthlySlotResevations";
+import Prices from "../components/prices/Prices";
 
 export default function Dashboard() {
   const [active, setActive] = useState("Dashboard");
@@ -16,8 +18,9 @@ export default function Dashboard() {
   const menuItems = [
     "Dashboard",
     "Venue Details",
-    "Photos & media",
-    "Contact Details",
+    "Prices, Offers, & Charges",
+    "Banners & media",
+    "Monthly reservations",
   ];
   const handleLogout = async () => {
     try {
@@ -32,8 +35,7 @@ export default function Dashboard() {
   const fetchSports = async () => {
     try {
       const sports = await getSports();
-      console.log(sports);
-      
+
       updateAvailableSports(sports);
     } catch (err) {
       alert(err);
@@ -111,14 +113,19 @@ export default function Dashboard() {
               <VenueDetails />
             </div>
           )}
-          {active === "Photos & media" && (
+          {active === "Prices, Offers, & Charges" && (
+            <div>
+              <Prices />
+            </div>
+          )}
+          {active === "Banners & media" && (
             <div>
               <MediaDetails />
             </div>
           )}
-          {active === "Contact Details" && (
+          {active === "Monthly reservations" && (
             <div>
-              <ContactDetails />
+              <MonthlyReservations />
             </div>
           )}
         </main>

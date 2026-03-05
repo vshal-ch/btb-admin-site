@@ -1,14 +1,12 @@
 import apiClient from "./apiClient";
 
 export const getSports = async () => {
-  return apiClient.get("/admin/sports");
+  return apiClient.get("/sports");
 };
 
-export const saveSport = (sport) => apiClient.post(`/admin/sports`, { sport });
+export const saveSport = (sport) => apiClient.post(`/sports`, sport);
 
 export const updateSport = (sport) =>
-  apiClient.put(`/admin/sports/${sport.id}`, {
-    sport: sport.name,
-  });
+  apiClient.put(`/sports/${sport.id}`, sport);
 
-export const deleteSport = (id) => apiClient.delete(`/admin/sports/${id}`);
+export const deleteSport = (id) => apiClient.delete(`/sports/${id}`);
