@@ -128,7 +128,7 @@ const MonthlyReservationModal = ({ reservation, onClose, onSave }) => {
             >
               {availableSports?.map((sport) => (
                 <option key={sport.id} value={sport.id}>
-                  {sport}
+                  {sport.sport}
                 </option>
               ))}
             </select>
