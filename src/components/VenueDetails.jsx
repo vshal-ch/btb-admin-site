@@ -5,6 +5,8 @@ import { AvailableSportsContext } from "../util/availableSportsContext";
 import AvailableSports from "./AvailableSports";
 import Amenities from "./misc/Amenities";
 import { getAmenities } from "../api/amenityService";
+import { getHolidays } from "../api/holidaysService";
+import Holidays from "./misc/Holidays";
 
 export default function VenueDetails() {
   const [venue, setVenue] = useState({
@@ -20,6 +22,8 @@ export default function VenueDetails() {
   const [loading, setLoading] = useState(false);
   const [showAmenities, setShowAmenities] = useState(false);
   const [amenities, setAmenities] = useState([]);
+  const [showHolidays, setShowHolidays] = useState(false);
+  const [holidays, setHolidays] = useState([]);
 
   // ✅ Fetch venue details on mount
   useEffect(() => {
@@ -56,7 +60,6 @@ export default function VenueDetails() {
     setIsModified(modified);
   }, [venue, originalVenue]);
 
-
   const handleSaveVenue = async () => {
     setLoading(true);
     try {
@@ -85,6 +88,22 @@ export default function VenueDetails() {
       setShowAmenities(true);
     } else {
       setShowAmenities(false);
+    }
+  };
+
+  const toggleShowHolidays = async () => {
+    if (showHolidays === false) {
+      if (holidays.length == 0) {
+        try {
+          const resp = await getHolidays();
+          setHolidays(resp);
+        } catch (e) {
+          alert(e);
+        }
+      }
+      setShowHolidays(true);
+    } else {
+      setShowHolidays(false);
     }
   };
 
@@ -397,6 +416,17 @@ export default function VenueDetails() {
         </button>
 
         {showAmenities && <Amenities amenitiesData={amenities} />}
+      </div>
+      <div className="my-6 p-6 border border-gray-800 rounded-xl bg-gray-900">
+        <button
+          onClick={toggleShowHolidays}
+          className="w-full flex justify-between items-center font-medium"
+        >
+          <h3 className="text-lg font-semibold">Holidays</h3>
+          <span>{showHolidays ? "▴" : "▾"}</span>
+        </button>
+
+        {showHolidays && <Holidays holidaysData={holidays} />}
       </div>
     </div>
   );
