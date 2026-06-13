@@ -213,6 +213,7 @@ const OfferModal = ({ offer, onClose, onSaved }) => {
                 >
                   <option value="PERCENT">Percentage</option>
                   <option value="FLAT">Fixed Amount</option>
+                  <option value="FREE_DURATION">Free Duration</option>
                 </select>
               </div>
 
