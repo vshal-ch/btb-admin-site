@@ -7,6 +7,7 @@ const OFFER_CONDITION_TYPES = [
   "DAY_OF_WEEK",
   "TIME_RANGE",
   "BOX",
+  "END_TIME"
 ];
 
 const OFFER_CONDITION_OPERATORS = ["=", ">=", "<=", "IN"];
