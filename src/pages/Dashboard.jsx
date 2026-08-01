@@ -9,6 +9,7 @@ import { AvailableSportsContext } from "../util/availableSportsContext";
 import { getSports } from "../api/sportService";
 import MonthlyReservations from "../components/monthly_reservations/MonthlySlotResevations";
 import Prices from "../components/prices/Prices";
+import Notes from "../components/Notes";
 
 export default function Dashboard() {
   const [active, setActive] = useState("Dashboard");
@@ -21,6 +22,7 @@ export default function Dashboard() {
     "Prices, Offers, & Charges",
     "Banners & media",
     "Monthly reservations",
+    "Notes",
   ];
   const handleLogout = async () => {
     try {
@@ -126,6 +128,11 @@ export default function Dashboard() {
           {active === "Monthly reservations" && (
             <div>
               <MonthlyReservations />
+            </div>
+          )}
+          {active === "Notes" && (
+            <div>
+              <Notes />
             </div>
           )}
         </main>
